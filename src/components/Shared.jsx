@@ -52,7 +52,7 @@ export function Field({label, children}){
   );
 }
 
-const inputStyle = {
+export const inputStyle = {
   width:'100%', padding:'14px 14px', borderRadius:10, border:'1px solid var(--line)',
   background:'var(--bg-raised)', color:'var(--paper)', fontSize:16, fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",
   outline:'none'
