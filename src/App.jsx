@@ -38,6 +38,7 @@ export default function App(){
 
   return (
     <React.Fragment>
+         <TabBar tab={tab} setTab={setTab} />
       <TopBar tab={tab} onBackupClick={()=>setShowBackup(true)} />
       {tab==='sales' && <SalesTab state={state} setState={setState} toast={toast} />}
       {tab==='history' && <HistoryTab state={state} setState={setState} toast={toast} />}
