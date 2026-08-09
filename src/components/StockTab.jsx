@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { fifoStockValue, remainingStock } from '../fifo';
-import { Field } from './Shared';
+import { Field, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 export function StockTab({state,setState,toast}){
