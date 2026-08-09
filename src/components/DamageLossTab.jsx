@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { computeFifoForLoss, remainingStock, recomputeItemFifo } from '../fifo';
-import { Field, AutocompleteInput, PillSelect } from './Shared';
+import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 const LOSS_REASONS = ['Damage','Theft','Expired','Other'];
