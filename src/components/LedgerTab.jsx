@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Field, AutocompleteInput, PillSelect } from './Shared';
+import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { fmtMoney, openReceivablesTotal, openPayablesTotal } from '../utils';
 import { saveState } from '../storage';
 
