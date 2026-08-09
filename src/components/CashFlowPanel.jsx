@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { monthKey, fmtMoney } from '../utils';
 import { computeClosingCash } from '../health-calcs';
 import { saveState } from '../storage';
-import { Field, ReportRow } from './Shared';
+import { Field, ReportRow, inputStyle } from './Shared';
 
 export function CashFlowPanel({state,setState,month}){
   // Only count transactions actually PAID in cash - older records without a
