@@ -156,12 +156,12 @@ export function TabBar({tab,setTab}){
     {key:'hr', label:'Staff'},
     {key:'health', label:'Health'},
   ];
-  return (
+    return (
     <div className="no-print" style={{
-      position:'fixed', bottom:0, left:0, right:0, maxWidth:480, margin:'0 auto',
-      display:'flex', overflowX:'auto', background:'var(--bg-raised)', borderTop:'1px solid var(--line)',
-      paddingBottom:'env(safe-area-inset-bottom)', WebkitOverflowScrolling:'touch'
+      display:'flex', overflowX:'auto', background:'var(--bg-raised)', borderBottom:'1px solid var(--line)',
+      WebkitOverflowScrolling:'touch'
     }}>
+
       {tabs.map(t=>(
         <button key={t.key} onClick={()=>setTab(t.key)} style={{
           flex:'1 0 60px', padding:'12px 4px 10px', background:'none', border:'none',
