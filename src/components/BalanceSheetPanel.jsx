@@ -3,7 +3,7 @@ import { fifoStockValue } from '../fifo';
 import { monthKey, fmtMoney, openReceivablesTotal, openPayablesTotal } from '../utils';
 import { calculateRetainedEarnings, totalDrawings, computeClosingCash } from '../health-calcs';
 import { saveState } from '../storage';
-import { Field, ReportRow } from './Shared';
+import { Field, ReportRow, inputStyle } from './Shared';
 
 export function BalanceSheetPanel({state,setState,month}){
   // Cash: closing balance for this month, computed same way as Cash Flow panel
