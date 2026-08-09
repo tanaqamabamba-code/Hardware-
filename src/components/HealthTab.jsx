@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { monthKey } from '../utils';
-import { Field } from './Shared';
+import { Field, inputStyle } from './Shared';
 import { PLPanel } from './PLPanel';
 import { BalanceSheetPanel } from './BalanceSheetPanel';
 import { CashFlowPanel } from './CashFlowPanel';
