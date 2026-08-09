@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { computeFifoForSale, remainingStock, recomputeItemFifo, afterOpeningCutover } from '../fifo';
 import { emptyRow } from '../utils';
-import { Field, AutocompleteInput, PillSelect } from './Shared';
+import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 export function SalesTab({state,setState,toast}){
