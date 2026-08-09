@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { computeFifoForSale, remainingStock, recomputeItemFifo } from '../fifo';
 import { startOfWeek, addDays } from '../utils';
-import { Field, AutocompleteInput } from './Shared';
+import { Field, AutocompleteInput, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 export function HistoryTab({state,setState,toast}){
