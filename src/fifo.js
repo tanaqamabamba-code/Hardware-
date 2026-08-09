@@ -18,7 +18,7 @@ export function initialState(){
   };
 }
 
-const EXPENSE_TYPES = ['Rent','Salaries','Utilities','Transport','Repairs','Stationery','Stock loss','Other'];
+export const EXPENSE_TYPES = ['Rent','Salaries','Utilities','Transport','Repairs','Stationery','Stock loss','Other'];
 
 /* ============ FIFO ENGINE ============
    Mirrors the Excel logic: opening stock is consumed first (at openingPrice),
