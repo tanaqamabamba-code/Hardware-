@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { nextDueInfo } from '../utils';
-import { Field, AutocompleteInput, PillSelect } from './Shared';
+import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 export function HRTab({state,setState,toast}){
