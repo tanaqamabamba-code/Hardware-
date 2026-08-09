@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Field, AutocompleteInput, PillSelect } from './Shared';
+import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { saveState } from '../storage';
 
 export function ExpensesTab({state,setState,toast}){
