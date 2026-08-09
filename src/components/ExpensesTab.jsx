@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
 import { saveState } from '../storage';
+import { EXPENSE_TYPES } from '../fifo';
+
 
 export function ExpensesTab({state,setState,toast}){
   const today = new Date().toISOString().slice(0,10);
