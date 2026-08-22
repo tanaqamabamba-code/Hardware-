@@ -15,6 +15,7 @@ export function initialState(){
     payroll: [],     // {id, date, staffId, staffName, amount, notes, expenseId}
     stockAdjustments: [], // {id, date, item, qty, reason, notes, fifoPrice, fifoLayer, costValue}
     drawings: [],    // {id, date, amount, notes} - owner withdrawals, not an expense
+    expenseTypes: EXPENSE_TYPES.slice(), // editable copy of the default categories
   };
 }
 
@@ -42,16 +43,12 @@ export function computeFifoForSale(state, item, saleDate, qty, excludeSaleId){
   const openingQty = (state.items.find(i=>i.name===item) || {openingQty:0}).openingQty || 0;
   const openingPrice = (state.items.find(i=>i.name===item) || {openingPrice:0}).openingPrice || 0;
 
-  // all prior sales of this item (cash register order = date then insertion order), excluding the one being computed
   const priorSales = state.sales
     .filter(s => s.item===item && s.id!==excludeSaleId)
-    .filter(s => s.date < saleDate || (s.date===saleDate)) // same/earlier date
+    .filter(s => s.date < saleDate || (s.date===saleDate))
     .filter(s => afterOpeningCutover(state, item, s.date))
     .map(s => ({ date:s.date, seq:s.seq, qty:s.qty }));
 
-  // stock losses (damage/theft/etc) also consume the same FIFO layers as sales,
-  // so they must count toward "already consumed" or a sale after a loss would
-  // incorrectly price from a cheaper/earlier layer than what's actually left.
   const priorLosses = (state.stockAdjustments||[])
     .filter(a => a.item===item)
     .filter(a => a.date <= saleDate)
@@ -61,12 +58,10 @@ export function computeFifoForSale(state, item, saleDate, qty, excludeSaleId){
   const priorConsumption = [...priorSales, ...priorLosses]
     .sort((a,b)=> (a.date<b.date?-1:a.date>b.date?1:a.seq-b.seq));
 
-  // cumulative consumed up to (not including) this sale
   let cumBefore = 0;
   for(const c of priorConsumption){ cumBefore += c.qty; }
   const cumAfter = cumBefore + qty;
 
-  // batches for this item, sorted by date - only those after the opening cutover count
   const batches = state.batches
     .filter(b=>b.item===item)
     .filter(b=>afterOpeningCutover(state, item, b.date))
@@ -79,24 +74,18 @@ export function computeFifoForSale(state, item, saleDate, qty, excludeSaleId){
     running += b.qty;
   }
 
-  // find which layer the midpoint of [cumBefore, cumAfter) falls into (use start point, matching Excel's per-unit logic)
   let chosenLayer = null;
   for(const layer of layers){
     if(cumAfter > layer.start && cumAfter <= layer.end){ chosenLayer = layer; break; }
     if(layer.end === 0 && cumAfter <= 0){ chosenLayer = layer; break; }
   }
   if(!chosenLayer){
-    // ran past all known layers -> fallback to last known price, or opening price
     chosenLayer = layers[layers.length-1] || {label:'Fallback', price: openingPrice};
   }
 
   return { price: chosenLayer.price, layerLabel: chosenLayer.label };
 }
 
-// Same FIFO layer logic as computeFifoForSale, but for stock losses (damage/theft/etc).
-// Crucially, this must account for BOTH prior sales AND prior losses of the same item,
-// since both consume stock from the same FIFO layers - a loss logged after a sale
-// should price from whatever layer is next in line, not restart from the beginning.
 export function computeFifoForLoss(state, item, lossDate, qty, excludeAdjustmentId){
   const openingQty = (state.items.find(i=>i.name===item) || {openingQty:0}).openingQty || 0;
   const openingPrice = (state.items.find(i=>i.name===item) || {openingPrice:0}).openingPrice || 0;
@@ -151,17 +140,11 @@ export function remainingStock(state, itemName){
   return opening + purchased - sold - lost;
 }
 
-// After editing or deleting a sale, every other sale of the SAME item may now have
-// a different FIFO cost basis, since FIFO depends on the order and quantity of
-// everything sold before it. This recomputes fifoPrice/grossProfit for all sales
-// of that item, in their correct date+seq order, so nothing is left stale.
 export function recomputeItemFifo(state, itemName){
   const itemSales = state.sales
     .filter(s=>s.item===itemName)
     .sort((a,b)=> (a.date<b.date?-1:a.date>b.date?1:a.seq-b.seq));
 
-  // build up a running state as if each sale were being added fresh, in order,
-  // so computeFifoForSale sees only the sales that come "before" it
   let runningSales = [];
   const updates = {};
   for(const s of itemSales){
@@ -175,9 +158,6 @@ export function recomputeItemFifo(state, itemName){
   return state.sales.map(s => updates[s.id] ? {...s, ...updates[s.id]} : s);
 }
 
-// FIFO inventory value: walk through layers (opening stock, then purchase batches
-// in date order) and figure out which units are still unsold, valuing each
-// remaining unit at the price of the layer it belongs to.
 export function fifoStockValue(state, itemName){
   const item = state.items.find(i=>i.name===itemName);
   const openingQty = item ? item.openingQty : 0;
@@ -188,8 +168,6 @@ export function fifoStockValue(state, itemName){
   const batches = state.batches.filter(b=>b.item===itemName).filter(b=>afterOpeningCutover(state,itemName,b.date)).sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
   const layers = [{ qty: openingQty, price: openingPrice }, ...batches.map(b=>({qty:b.qty, price:b.price}))];
 
-  // consume from the front (oldest first) using totalSold + totalLost combined,
-  // since both sales and losses draw down the same FIFO layers
   let toConsume = totalSold + totalLost;
   let value = 0;
   let qtyLeft = 0;
@@ -200,6 +178,5 @@ export function fifoStockValue(state, itemName){
     qtyLeft += remainingHere;
     toConsume -= consumedHere;
   }
-  // if toConsume > 0 still, more was sold/lost than ever recorded as purchased (data gap / negative stock) - value floors at 0 for those excess units
   return { qty: qtyLeft, value: Math.round(value*100)/100 };
 }

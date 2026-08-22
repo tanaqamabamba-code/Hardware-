@@ -38,7 +38,7 @@ export default function App(){
 
   return (
     <React.Fragment>
-         <TabBar tab={tab} setTab={setTab} />
+      <TabBar tab={tab} setTab={setTab} />
       <TopBar tab={tab} onBackupClick={()=>setShowBackup(true)} />
       {tab==='sales' && <SalesTab state={state} setState={setState} toast={toast} />}
       {tab==='history' && <HistoryTab state={state} setState={setState} toast={toast} />}
@@ -51,7 +51,6 @@ export default function App(){
       {tab==='health' && <HealthTab state={state} setState={setState} toast={toast} />}
       {showBackup && <BackupPanel state={state} setState={setState} toast={toast} onClose={()=>setShowBackup(false)} />}
       <Toast msg={toastMsg} />
-    
     </React.Fragment>
   );
 }

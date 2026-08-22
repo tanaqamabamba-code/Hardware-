@@ -4,7 +4,7 @@ import { saveState } from '../storage';
 
 export function BackupPanel({state,setState,toast,onClose}){
   const fileInputRef = useRef(null);
-  const [confirmImport,setConfirmImport] = useState(null); // parsed data pending confirmation
+  const [confirmImport,setConfirmImport] = useState(null);
   const [pendingFileName,setPendingFileName] = useState('');
 
   function exportBackup(){
@@ -22,7 +22,7 @@ export function BackupPanel({state,setState,toast,onClose}){
       try{
         parsed = JSON.parse(evt.target.result);
       }catch(err){
-        toast('That file isn\u2019t valid JSON.','bad');
+        toast('That file isn’t valid JSON.','bad');
         return;
       }
       const error = validateBackup(parsed);
@@ -34,7 +34,7 @@ export function BackupPanel({state,setState,toast,onClose}){
       setPendingFileName(file.name);
     };
     reader.readAsText(file);
-    e.target.value = ''; // allow re-selecting the same file later
+    e.target.value = '';
   }
 
   function confirmRestore(){
@@ -64,7 +64,7 @@ export function BackupPanel({state,setState,toast,onClose}){
       }}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
           <span style={{fontSize:18,fontWeight:700,fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}}>Backup</span>
-          <span onClick={onClose} style={{fontSize:20,color:'var(--concrete-light)',cursor:'pointer',padding:4}}>\u2715</span>
+          <span onClick={onClose} style={{fontSize:20,color:'var(--concrete-light)',cursor:'pointer',padding:4}}>✕</span>
         </div>
 
         {confirmImport ? (
@@ -76,7 +76,7 @@ export function BackupPanel({state,setState,toast,onClose}){
               This file has {confirmImport.sales.length} sales, {confirmImport.items.length} items, {confirmImport.expenses.length} expenses.
             </div>
             <div style={{fontSize:13,color:'var(--bad)',marginBottom:16}}>
-              This will replace everything currently in the app with the contents of this file. Your current data will be lost unless you\u2019ve backed it up separately.
+              This will replace everything currently in the app with the contents of this file. Your current data will be lost unless you’ve backed it up separately.
             </div>
             <div style={{display:'flex',gap:8}}>
               <button onClick={confirmRestore} style={{flex:1,padding:'12px',borderRadius:8,border:'none',background:'var(--bad)',color:'#fff',fontWeight:700,fontSize:14,cursor:'pointer'}}>Replace everything</button>
@@ -111,4 +111,3 @@ export function BackupPanel({state,setState,toast,onClose}){
     </div>
   );
 }
-

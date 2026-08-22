@@ -3,8 +3,8 @@ import { waitForFirebase } from '../storage';
 import { fmtMoney } from '../utils';
 
 export function TopBar({tab,onBackupClick}){
-  const titles = {sales:'Add a sale', history:'Today\u2019s sales', stock:'Stock levels', newstock:'Add stock', expenses:'Log an expense', loss:'Damage & loss', ledger:'Money owed', hr:'Staff & wages', health:'Business health'};
-  const [synced,setSynced] = useState(null); // null=checking, true=synced, false=local only
+  const titles = {sales:'Add a sale', history:'Today’s sales', stock:'Stock levels', newstock:'Add stock', expenses:'Log an expense', loss:'Damage & loss', ledger:'Money owed', hr:'Staff & wages', health:'Business health'};
+  const [synced,setSynced] = useState(null);
   useEffect(()=>{
     let cancelled = false;
     waitForFirebase(4000).then(()=>{
@@ -21,7 +21,7 @@ export function TopBar({tab,onBackupClick}){
         </div>
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <span style={{fontSize:11,color: synced===null?'var(--concrete)':synced?'var(--good)':'var(--concrete-light)'}}>
-            {synced===null ? 'Checking\u2026' : synced ? '\u2713 Synced' : 'Local only'}
+            {synced===null ? 'Checking…' : synced ? '✓ Synced' : 'Local only'}
           </span>
           <span onClick={onBackupClick} style={{fontSize:12,color:'var(--concrete-light)',cursor:'pointer',textDecoration:'underline'}}>Backup</span>
         </div>
@@ -131,7 +131,6 @@ export function PillSelect({value,onChange,options}){
   );
 }
 
-
 export function Toast({msg}){
   if(!msg) return null;
   return (
@@ -156,12 +155,11 @@ export function TabBar({tab,setTab}){
     {key:'hr', label:'Staff'},
     {key:'health', label:'Health'},
   ];
-    return (
+  return (
     <div className="no-print" style={{
       display:'flex', overflowX:'auto', background:'var(--bg-raised)', borderBottom:'1px solid var(--line)',
       WebkitOverflowScrolling:'touch'
     }}>
-
       {tabs.map(t=>(
         <button key={t.key} onClick={()=>setTab(t.key)} style={{
           flex:'1 0 60px', padding:'12px 4px 10px', background:'none', border:'none',
@@ -169,9 +167,7 @@ export function TabBar({tab,setTab}){
           fontWeight: tab===t.key ? 700:500, fontSize:10.5, cursor:'pointer', whiteSpace:'nowrap',
           fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"
         }}>{t.label}</button>
-
       ))}
     </div>
   );
 }
-

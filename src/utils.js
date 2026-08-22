@@ -4,8 +4,8 @@ export function emptyRow(){ return { key: 'row_'+Date.now()+'_'+Math.random(), i
 
 export function startOfWeek(dateStr){
   const d = new Date(dateStr+'T00:00:00');
-  const day = d.getDay(); // 0=Sun
-  const diff = (day===0 ? -6 : 1-day); // week starts Monday
+  const day = d.getDay();
+  const diff = (day===0 ? -6 : 1-day);
   d.setDate(d.getDate()+diff);
   return d.toISOString().slice(0,10);
 }
@@ -15,20 +15,25 @@ export function addDays(dateStr,n){
   return d.toISOString().slice(0,10);
 }
 
+export function monthKey(dateStr){ return dateStr.slice(0,7); }
 
-export function monthKey(dateStr){ return dateStr.slice(0,7); } // "2026-01-15" -> "2026-01"
+export function fmtMoney(n){ return (n<0?'−':'') + Math.abs(n).toFixed(2); }
 
-export function fmtMoney(n){ return (n<0?'\u2212':'') + Math.abs(n).toFixed(2); }
-
+export function ledgerPaidTotal(entry){
+  return (entry.payments||[]).reduce((a,p)=>a+p.amount,0);
+}
+export function ledgerRemaining(entry){
+  return Math.round((entry.amount - ledgerPaidTotal(entry))*100)/100;
+}
 export function openReceivablesTotal(state, asOfMonth){
   return (state.ledger||[])
     .filter(l=> l.type==='receivable' && l.status==='open' && (!asOfMonth || monthKey(l.date)<=asOfMonth))
-    .reduce((a,l)=>a+l.amount,0);
+    .reduce((a,l)=>a+ledgerRemaining(l),0);
 }
 export function openPayablesTotal(state, asOfMonth){
   return (state.ledger||[])
     .filter(l=> l.type==='payable' && l.status==='open' && (!asOfMonth || monthKey(l.date)<=asOfMonth))
-    .reduce((a,l)=>a+l.amount,0);
+    .reduce((a,l)=>a+ledgerRemaining(l),0);
 }
 
 export function daysBetween(d1,d2){
@@ -66,12 +71,30 @@ export function downloadJSON(data, filename){
   URL.revokeObjectURL(url);
 }
 
-export function validateBackup(data){
-  if(!data || typeof data !== 'object') return 'File doesn\u2019t look like a valid backup.';
-  const requiredArrays = ['items','batches','sales','agents','expenses','ledger','staff','payroll'];
-  for(const key of requiredArrays){
-    if(!Array.isArray(data[key])) return `Missing or invalid "${key}" \u2014 this doesn\u2019t look like a Tanbuild backup file.`;
+export function downloadCSV(rows, headers, filename){
+  function escapeCell(value){
+    const str = value===null || value===undefined ? '' : String(value);
+    if(str.includes(',') || str.includes('"') || str.includes('\n')){
+      return '"' + str.replace(/"/g,'""') + '"';
+    }
+    return str;
   }
-  return null; // valid
+  const headerLine = headers.map(h=>escapeCell(h.label)).join(',');
+  const lines = rows.map(row => headers.map(h=>escapeCell(row[h.key])).join(','));
+  const csv = [headerLine, ...lines].join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
+export function validateBackup(data){
+  if(!data || typeof data !== 'object') return 'File doesn’t look like a valid backup.';
+  const requiredArrays = ['items','batches','sales','agents','expenses','ledger','staff','payroll'];
+  for(const key of requiredArrays){
+    if(!Array.isArray(data[key])) return `Missing or invalid "${key}" — this doesn’t look like a Tanbuild backup file.`;
+  }
+  return null;
+}

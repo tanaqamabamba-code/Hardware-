@@ -9,6 +9,7 @@ export function StockTab({state,setState,toast}){
   const [newName,setNewName] = useState('');
   const [editQty,setEditQty] = useState('');
   const [editPrice,setEditPrice] = useState('');
+  const [editAsOf,setEditAsOf] = useState('');
 
   const rows = useMemo(()=>{
     return state.items
@@ -17,7 +18,7 @@ export function StockTab({state,setState,toast}){
         return { name:i.name, left: stockVal.qty, value: stockVal.value };
       })
       .filter(r=> query ? r.name.toLowerCase().includes(query.toLowerCase()) : true)
-      .sort((a,b)=> a.left - b.left); // lowest stock first, surfaces problems
+      .sort((a,b)=> a.left - b.left);
   },[state,query]);
 
   const totalValue = useMemo(()=>{
@@ -28,16 +29,14 @@ export function StockTab({state,setState,toast}){
     setEditingItem(name);
     setNewName(name);
     const item = state.items.find(i=>i.name===name);
-    // Show the item's opening quantity/price as the editable "base" values.
-    // Note: this is the opening layer only - purchases/sales already recorded
-    // still apply on top of whatever you set here.
     setEditQty(item ? String(item.openingQty) : '0');
     setEditPrice(item ? String(item.openingPrice) : '0');
+    setEditAsOf(item && item.openingAsOf ? item.openingAsOf : new Date().toISOString().slice(0,10));
   }
 
   async function confirmEdit(){
     const trimmedName = newName.trim();
-    if(!trimmedName){ toast('Name can\u2019t be empty.','bad'); return; }
+    if(!trimmedName){ toast('Name can’t be empty.','bad'); return; }
     if(trimmedName !== editingItem && state.items.some(i=>i.name===trimmedName)){
       toast('An item with that name already exists.','bad');
       return;
@@ -46,18 +45,19 @@ export function StockTab({state,setState,toast}){
     const price = editPrice===''? 0 : Number(editPrice);
     if(isNaN(qty) || qty<0){ toast('Quantity must be 0 or more.','bad'); return; }
     if(isNaN(price) || price<0){ toast('Price must be 0 or more.','bad'); return; }
+    if(!editAsOf){ toast('Please choose a date for this count.','bad'); return; }
 
-    const today = new Date().toISOString().slice(0,10);
+    const asOfDate = editAsOf;
     const next = {
       ...state,
-      items: state.items.map(i=> i.name===editingItem ? {...i, name:trimmedName, openingQty:qty, openingPrice:price, openingAsOf:today} : i),
+      items: state.items.map(i=> i.name===editingItem ? {...i, name:trimmedName, openingQty:qty, openingPrice:price, openingAsOf:asOfDate} : i),
       batches: state.batches.map(b=> b.item===editingItem ? {...b, item:trimmedName} : b),
       sales: state.sales.map(s=> s.item===editingItem ? {...s, item:trimmedName} : s),
     };
     setState(next);
     const ok = await saveState(next);
-    if(!ok){ toast('Saved on screen, but couldn\u2019t save to storage \u2014 try again or check your connection.','bad'); return; }
-    toast('Updated \u2014 counted as of today, earlier purchases won\u2019t be added on top', 'good');
+    if(!ok){ toast('Saved on screen, but couldn’t save to storage — try again or check your connection.','bad'); return; }
+    toast(`Updated — counted as of ${asOfDate}, earlier purchases won’t be added on top`, 'good');
     setEditingItem(null);
   }
 
@@ -66,16 +66,17 @@ export function StockTab({state,setState,toast}){
   }
 
   const [confirmBulkFix,setConfirmBulkFix] = useState(false);
+  const [bulkFixDate,setBulkFixDate] = useState(new Date().toISOString().slice(0,10));
   async function fixAllOpeningDates(){
-    const today = new Date().toISOString().slice(0,10);
+    if(!bulkFixDate){ toast('Please choose a date.','bad'); return; }
     const next = {
       ...state,
-      items: state.items.map(i=> ({...i, openingAsOf: today}))
+      items: state.items.map(i=> ({...i, openingAsOf: bulkFixDate}))
     };
     setState(next);
     const ok = await saveState(next);
-    if(!ok){ toast('Saved on screen, but couldn\u2019t save to storage \u2014 try again.','bad'); return; }
-    toast('All items now counted as of today \u2014 earlier Buy/Sale/Loss records won\u2019t be added on top', 'good');
+    if(!ok){ toast('Saved on screen, but couldn’t save to storage — try again.','bad'); return; }
+    toast(`All items now counted as of ${bulkFixDate} — earlier Buy/Sale/Loss records won’t be added on top`, 'good');
     setConfirmBulkFix(false);
   }
 
@@ -94,8 +95,10 @@ export function StockTab({state,setState,toast}){
       {confirmBulkFix ? (
         <div style={{background:'var(--bg-card)',borderRadius:12,padding:14,marginBottom:16}}>
           <div style={{fontSize:13,marginBottom:10}}>
-            This marks every item as counted today, so old Buy/Sale/Loss records stop being added on top of the quantities you already corrected. This can\u2019t be undone automatically.
+            This marks every item as counted on the date you choose, so old Buy/Sale/Loss records stop being added on top of the quantities you already corrected. This can’t be undone automatically.
           </div>
+          <div style={{fontSize:11,color:'var(--concrete-light)',marginBottom:4}}>Counted as of</div>
+          <input type="date" style={{...inputStyle, marginBottom:12}} value={bulkFixDate} onChange={e=>setBulkFixDate(e.target.value)} />
           <div style={{display:'flex',gap:8}}>
             <button onClick={fixAllOpeningDates} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'var(--accent)',color:'#1c1b19',fontWeight:700,fontSize:13,cursor:'pointer'}}>Yes, fix all items</button>
             <button onClick={()=>setConfirmBulkFix(false)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid var(--line)',background:'none',color:'var(--concrete-light)',fontWeight:600,fontSize:13,cursor:'pointer'}}>Cancel</button>
@@ -138,8 +141,11 @@ export function StockTab({state,setState,toast}){
               </div>
               <div onClick={resetToZero} style={{fontSize:12,color:'var(--accent)',cursor:'pointer',textDecoration:'underline',marginBottom:12}}>Reset both to 0</div>
 
+              <div style={{fontSize:11,color:'var(--concrete-light)',marginBottom:4}}>Counted as of</div>
+              <input type="date" style={{...inputStyle, marginBottom:12}} value={editAsOf} onChange={e=>setEditAsOf(e.target.value)} />
+
               <div style={{fontSize:11,color:'var(--concrete)',marginBottom:12}}>
-                Saving this sets the count as of today. Purchases, sales, and losses logged before today won\u2019t be added on top \u2014 only ones from today onward will.
+                Saving this sets the count as of the date above. Purchases, sales, and losses logged before that date won’t be added on top — only ones from that date onward will.
               </div>
 
               <div style={{display:'flex',gap:8}}>
@@ -170,4 +176,3 @@ export function StockTab({state,setState,toast}){
     </div>
   );
 }
-

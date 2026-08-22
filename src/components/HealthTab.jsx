@@ -9,10 +9,10 @@ import { TopItemsPanel } from './TopItemsPanel';
 export function HealthTab({state,setState,toast}){
   const thisMonth = new Date().toISOString().slice(0,7);
   const thisYear = thisMonth.slice(0,4);
-  const [periodType,setPeriodType] = useState('month'); // 'month' | 'ytd'
+  const [periodType,setPeriodType] = useState('month');
   const [month,setMonth] = useState(thisMonth);
   const [year,setYear] = useState(thisYear);
-  const [report,setReport] = useState('pl'); // 'pl' | 'bs' | 'cf' | 'top'
+  const [report,setReport] = useState('pl');
 
   const monthsWithData = useMemo(()=>{
     const set = new Set();
@@ -29,7 +29,6 @@ export function HealthTab({state,setState,toast}){
     return [...set].sort();
   },[monthsWithData]);
 
-  // For BS/CF which need a specific month even in YTD mode, use Dec (or latest month) of the selected year
   const effectiveMonth = periodType==='ytd'
     ? (monthsWithData.filter(m=>m.startsWith(year)).sort().slice(-1)[0] || `${year}-12`)
     : month;
@@ -79,8 +78,8 @@ export function HealthTab({state,setState,toast}){
       </div>
 
       <div className="print-title" style={{display:'none'}}>
-        Tanbuild \u2014 {report==='pl'?'Profit & Loss':report==='bs'?'Balance Sheet':report==='cf'?'Cash Flow':'Top Items'}
-        {' \u2014 '}{periodType==='ytd' ? `Year to date ${year}` : effectiveMonth}
+        Tanbuild — {report==='pl'?'Profit & Loss':report==='bs'?'Balance Sheet':report==='cf'?'Cash Flow':'Top Items'}
+        {' — '}{periodType==='ytd' ? `Year to date ${year}` : effectiveMonth}
       </div>
 
       {report==='pl' && (periodType==='ytd'
@@ -99,4 +98,3 @@ export function HealthTab({state,setState,toast}){
     </div>
   );
 }
-

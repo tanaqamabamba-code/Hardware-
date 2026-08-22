@@ -6,13 +6,13 @@ import { saveState } from '../storage';
 
 export function HistoryTab({state,setState,toast}){
   const today = new Date().toISOString().slice(0,10);
-  const [mode,setMode] = useState('day'); // 'day' | 'week'
+  const [mode,setMode] = useState('day');
   const [filterDate,setFilterDate] = useState(today);
   const [weekStart,setWeekStart] = useState(startOfWeek(today));
-  const [editingSale,setEditingSale] = useState(null); // sale id being edited
+  const [editingSale,setEditingSale] = useState(null);
   const [editQty,setEditQty] = useState('');
   const [editPrice,setEditPrice] = useState('');
-  const [confirmDelete,setConfirmDelete] = useState(null); // sale id pending delete confirmation
+  const [confirmDelete,setConfirmDelete] = useState(null);
 
   const itemNames = useMemo(()=>state.items.map(i=>i.name),[state.items]);
 
@@ -68,9 +68,9 @@ export function HistoryTab({state,setState,toast}){
   const weeksWithData = useMemo(()=>{
     const set = new Set();
     state.sales.forEach(s=>set.add(startOfWeek(s.date)));
-    set.add(startOfWeek(today)); // always include the current week, even with no sales yet
-    set.add(weekStart); // always include whichever week is currently selected, even mid-navigation via arrows
-    return [...set].sort().reverse(); // most recent first
+    set.add(startOfWeek(today));
+    set.add(weekStart);
+    return [...set].sort().reverse();
   },[state.sales,weekStart]);
 
   const byDay = useMemo(()=>{
@@ -103,7 +103,7 @@ export function HistoryTab({state,setState,toast}){
         </div>
 
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginBottom:16}}>
-          <button onClick={()=>setWeekStart(addDays(weekStart,-7))} style={{padding:'8px 12px',borderRadius:8,border:'1px solid var(--line)',background:'var(--bg-raised)',color:'var(--paper)',cursor:'pointer'}}>\u2039</button>
+          <button onClick={()=>setWeekStart(addDays(weekStart,-7))} style={{padding:'8px 12px',borderRadius:8,border:'1px solid var(--line)',background:'var(--bg-raised)',color:'var(--paper)',cursor:'pointer'}}>‹</button>
           <select
             style={{...inputStyle, flex:1, padding:'8px 10px', fontSize:13, appearance:'auto', textAlign:'center'}}
             value={weekStart}
@@ -113,7 +113,7 @@ export function HistoryTab({state,setState,toast}){
               <option key={w} value={w}>{w} to {addDays(w,6)}</option>
             ))}
           </select>
-          <button onClick={()=>setWeekStart(addDays(weekStart,7))} style={{padding:'8px 12px',borderRadius:8,border:'1px solid var(--line)',background:'var(--bg-raised)',color:'var(--paper)',cursor:'pointer'}}>\u203a</button>
+          <button onClick={()=>setWeekStart(addDays(weekStart,7))} style={{padding:'8px 12px',borderRadius:8,border:'1px solid var(--line)',background:'var(--bg-raised)',color:'var(--paper)',cursor:'pointer'}}>›</button>
         </div>
 
         <div style={{display:'flex',gap:12,marginBottom:20}}>
@@ -199,7 +199,7 @@ export function HistoryTab({state,setState,toast}){
             </div>
           ) : confirmDelete===s.id ? (
             <div>
-              <div style={{fontSize:14,marginBottom:10}}>Delete this sale? This can\u2019t be undone.</div>
+              <div style={{fontSize:14,marginBottom:10}}>Delete this sale? This can’t be undone.</div>
               <div style={{display:'flex',gap:8}}>
                 <button onClick={()=>deleteSale(s)} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'var(--bad)',color:'#fff',fontWeight:700,fontSize:13,cursor:'pointer'}}>Delete</button>
                 <button onClick={()=>setConfirmDelete(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid var(--line)',background:'none',color:'var(--concrete-light)',fontWeight:600,fontSize:13,cursor:'pointer'}}>Cancel</button>
@@ -212,7 +212,7 @@ export function HistoryTab({state,setState,toast}){
                 <span style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700}}>{(s.qty*s.price).toFixed(2)}</span>
               </div>
               <div style={{fontSize:13,color:'var(--concrete-light)',marginTop:4}}>
-                {s.qty} \u00d7 {s.price.toFixed(2)} &middot; {s.agent}
+                {s.qty} × {s.price.toFixed(2)} &middot; {s.agent}
               </div>
               <div style={{fontSize:12,color:'var(--concrete)',marginTop:6,paddingTop:6,borderTop:'1px solid var(--line)'}}>
                 Cost basis: {s.fifoPrice.toFixed(2)} <span style={{opacity:0.7}}>({s.fifoLayer})</span> &middot; GP {s.grossProfit>=0?'+':''}{s.grossProfit.toFixed(2)}
@@ -228,4 +228,3 @@ export function HistoryTab({state,setState,toast}){
     </div>
   );
 }
-

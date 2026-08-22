@@ -5,9 +5,8 @@ import { saveState } from '../storage';
 
 export function HRTab({state,setState,toast}){
   const today = new Date().toISOString().slice(0,10);
-  const [view,setView] = useState('staff'); // 'staff' | 'pay' | 'history'
+  const [view,setView] = useState('staff');
 
-  // ---- Add/edit staff ----
   const [name,setName] = useState('');
   const [role,setRole] = useState('');
   const [wage,setWage] = useState('');
@@ -37,13 +36,12 @@ export function HRTab({state,setState,toast}){
 
   function removeStaff(id){
     const hasPayments = state.payroll.some(p=>p.staffId===id);
-    if(hasPayments){ toast('Can\u2019t remove \u2014 this person has payment history.','bad'); return; }
+    if(hasPayments){ toast('Can’t remove — this person has payment history.','bad'); return; }
     const next = {...state, staff: state.staff.filter(s=>s.id!==id)};
     setState(next); saveState(next);
     toast('Removed','good');
   }
 
-  // ---- Pay someone ----
   const [payStaffId,setPayStaffId] = useState('');
   const [payDate,setPayDate] = useState(today);
   const [payAmount,setPayAmount] = useState('');
@@ -58,16 +56,16 @@ export function HRTab({state,setState,toast}){
   }
 
   function submitPayment(){
-    if(!payStaffId){ toast('Choose who you\u2019re paying.','bad'); return; }
+    if(!payStaffId){ toast('Choose who you’re paying.','bad'); return; }
     if(!payAmount || Number(payAmount)<=0){ toast('Enter an amount greater than 0.','bad'); return; }
     const s = state.staff.find(x=>x.name===payStaffId);
-    if(!s){ toast('Couldn\u2019t find that staff member.','bad'); return; }
+    if(!s){ toast('Couldn’t find that staff member.','bad'); return; }
     const expenseId = 'exp_'+Date.now();
     const payrollId = 'pay_'+Date.now();
     const expense = {
-      id: expenseId, date: payDate, description: `Wages \u2014 ${s.name}`,
+      id: expenseId, date: payDate, description: `Wages — ${s.name}`,
       accountType:'Salaries', amount:Number(payAmount), notes: payNotes.trim(),
-      paymentStatus:'paid' // payroll is only ever recorded at the moment it's actually paid out
+      paymentStatus:'paid'
     };
     const payment = {
       id: payrollId, date: payDate, staffId: s.id, staffName: s.name,
@@ -122,7 +120,7 @@ export function HRTab({state,setState,toast}){
                       {s.wage && <span style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700}}>{s.wage.toFixed(2)}</span>}
                     </div>
                     <div style={{fontSize:12,color:'var(--concrete-light)',marginTop:4}}>
-                      {s.role ? s.role+' \u00b7 ' : ''}{s.frequency}
+                      {s.role ? s.role+' · ' : ''}{s.frequency}
                     </div>
                     <div style={{fontSize:12,marginTop:6,color: due.overdue?'var(--bad)': due.dueSoon?'var(--accent)':'var(--concrete)'}}>
                       {due.label}
@@ -182,7 +180,7 @@ export function HRTab({state,setState,toast}){
             <div key={p.id} style={{display:'flex',justifyContent:'space-between',padding:'12px 0',borderBottom:'1px solid var(--line)'}}>
               <div>
                 <div style={{fontSize:14,fontWeight:600}}>{p.staffName}</div>
-                <div style={{fontSize:12,color:'var(--concrete-light)'}}>{p.date}{p.notes ? ' \u00b7 '+p.notes : ''}</div>
+                <div style={{fontSize:12,color:'var(--concrete-light)'}}>{p.date}{p.notes ? ' · '+p.notes : ''}</div>
               </div>
               <span style={{fontWeight:600,fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"}}>{p.amount.toFixed(2)}</span>
             </div>
@@ -192,4 +190,3 @@ export function HRTab({state,setState,toast}){
     </div>
   );
 }
-

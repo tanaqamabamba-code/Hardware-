@@ -23,7 +23,7 @@ export function DamageLossTab({state,setState,toast}){
 
   function submit(){
     if(!item){ toast('Choose an item.','bad'); return; }
-    if(!state.items.some(i=>i.name===item)){ toast('That item isn\u2019t in your stock list.','bad'); return; }
+    if(!state.items.some(i=>i.name===item)){ toast('That item isn’t in your stock list.','bad'); return; }
     if(!qty || Number(qty)<=0){ toast('Enter a quantity greater than 0.','bad'); return; }
     if(!reason){ toast('Choose a reason.','bad'); return; }
 
@@ -39,13 +39,11 @@ export function DamageLossTab({state,setState,toast}){
       costValue
     };
 
-    // Record it as an expense too, so it correctly hits the P&L - matches how
-    // the review flagged this needing real accounting treatment, not just a note.
     const expenseId = 'exp_'+Date.now();
     const newExpense = {
-      id: expenseId, date, description: `Stock loss \u2014 ${reason}: ${q}\u00d7${item}`,
+      id: expenseId, date, description: `Stock loss — ${reason}: ${q}×${item}`,
       accountType:'Stock loss', amount: costValue, notes: notes.trim(),
-      paymentStatus:'paid', // a stock loss isn't a cash transaction - it doesn't touch Cash Flow.
+      paymentStatus:'paid',
       linkedAdjustmentId: adjustmentId
     };
 
@@ -56,7 +54,7 @@ export function DamageLossTab({state,setState,toast}){
     };
     setState(next);
     saveState(next);
-    toast(`Logged ${q} \u00d7 ${item} lost to ${reason.toLowerCase()}`, 'good');
+    toast(`Logged ${q} × ${item} lost to ${reason.toLowerCase()}`, 'good');
     reset(true);
   }
 
@@ -107,7 +105,7 @@ export function DamageLossTab({state,setState,toast}){
             <span style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700,color:'var(--bad)'}}>-{a.costValue.toFixed(2)}</span>
           </div>
           <div style={{fontSize:12,color:'var(--concrete-light)',marginTop:4}}>
-            {a.qty} units \u00b7 {a.reason} \u00b7 {a.date}
+            {a.qty} units · {a.reason} · {a.date}
           </div>
           {a.notes && <div style={{fontSize:12,color:'var(--concrete)',marginTop:4}}>{a.notes}</div>}
         </div>
@@ -115,4 +113,3 @@ export function DamageLossTab({state,setState,toast}){
     </div>
   );
 }
-

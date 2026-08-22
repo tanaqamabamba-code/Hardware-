@@ -5,9 +5,6 @@ import { saveState } from '../storage';
 import { Field, ReportRow, inputStyle } from './Shared';
 
 export function CashFlowPanel({state,setState,month}){
-  // Only count transactions actually PAID in cash - older records without a
-  // paymentStatus field are treated as 'paid' (that's how the app behaved
-  // before payment status existed, so this keeps old data consistent).
   const cashSales = useMemo(()=>state.sales
     .filter(s=>monthKey(s.date)===month && (s.paymentStatus||'paid')==='paid')
     .reduce((a,s)=>a+s.qty*s.price,0),[state.sales,month]);
@@ -20,9 +17,6 @@ export function CashFlowPanel({state,setState,month}){
     .filter(e=>monthKey(e.date)===month && (e.paymentStatus||'paid')==='paid')
     .reduce((a,e)=>a+e.amount,0),[state.expenses,month]);
 
-  // Ledger settlements: money that actually changed hands this month, regardless
-  // of when the original sale/purchase/expense happened. A receivable settled
-  // this month = cash coming in now; a payable settled = cash going out now.
   const ledgerReceipts = useMemo(()=>(state.ledger||[])
     .filter(l=> l.type==='receivable' && l.status==='settled' && l.settledDate && monthKey(l.settledDate)===month)
     .reduce((a,l)=>a+l.amount,0),[state.ledger,month]);
@@ -62,7 +56,7 @@ export function CashFlowPanel({state,setState,month}){
           value={openingBalance.toFixed(2)} onChange={e=>setOpeningBalance(e.target.value)} placeholder="0.00" />
       </Field>
       <div style={{fontSize:12,color:'var(--concrete)',marginTop:-10,marginBottom:16}}>
-        Only set this for your very first month \u2014 later months carry forward automatically.
+        Only set this for your very first month — later months carry forward automatically.
       </div>
 
       <div style={{background:'var(--bg-card)',borderRadius:12,padding:'16px'}}>
@@ -73,4 +67,3 @@ export function CashFlowPanel({state,setState,month}){
     </div>
   );
 }
-

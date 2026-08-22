@@ -6,13 +6,10 @@ import { saveState } from '../storage';
 import { Field, ReportRow, inputStyle } from './Shared';
 
 export function BalanceSheetPanel({state,setState,month}){
-  // Cash: closing balance for this month, computed same way as Cash Flow panel
   const cash = computeClosingCash(state, month);
 
-  // Inventory: FIFO stock value AS OF the end of the selected month (only counting
-  // sales/purchases up to that month, not the live/current totals)
   const inventoryValue = useMemo(()=>{
-    const cutoff = month + '-32'; // sorts after any real date in that month
+    const cutoff = month + '-32';
     const scopedState = {
       ...state,
       sales: state.sales.filter(s=>monthKey(s.date)<=month),
@@ -107,7 +104,7 @@ export function BalanceSheetPanel({state,setState,month}){
           <div style={{marginTop:12}}>
             {recentDrawings.map(d=>(
               <div key={d.id} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--line)',fontSize:13}}>
-                <span style={{color:'var(--concrete-light)'}}>{d.date}{d.notes ? ' \u00b7 '+d.notes : ''}</span>
+                <span style={{color:'var(--concrete-light)'}}>{d.date}{d.notes ? ' · '+d.notes : ''}</span>
                 <span style={{fontWeight:600}}>{d.amount.toFixed(2)}</span>
               </div>
             ))}
@@ -118,13 +115,9 @@ export function BalanceSheetPanel({state,setState,month}){
       <div style={{background:'var(--bg-card)',borderRadius:12,padding:'16px'}}>
         <ReportRow label="Balance check" value={balanceCheck} bold accent />
         <div style={{fontSize:11,color:'var(--concrete)',marginTop:6}}>
-          Should be 0. A non-zero number usually means liabilities aren\u2019t fully tracked yet (e.g. unpaid supplier bills) \u2014 not necessarily an error.
+          Should be 0. A non-zero number usually means liabilities aren’t fully tracked yet (e.g. unpaid supplier bills) — not necessarily an error.
         </div>
       </div>
     </div>
   );
 }
-
-// Single source of truth for retained earnings: cumulative net profit across every
-// month up to and including `month`. Anything that needs this number - Balance Sheet
-// today, any future report - should call this rather than recompute it locally.

@@ -13,7 +13,6 @@ export function waitForFirebase(timeoutMs){
 export async function loadState(){
   await waitForFirebase(4000);
 
-  // Prefer Firebase (shared across devices) when it's genuinely configured and reachable
   if(window.__firebase && window.__firebase.ready){
     try{
       const data = await window.__firebase.getDoc();
@@ -21,7 +20,6 @@ export async function loadState(){
     }catch(e){ console.error('Firebase load failed, falling back to localStorage', e); }
   }
 
-  // Fallback: browser localStorage (works offline, or if Firebase isn't set up/reachable)
   try{
     const raw = localStorage.getItem(LOCAL_KEY);
     if(raw) return JSON.parse(raw);
@@ -40,8 +38,6 @@ export async function saveState(state){
     }catch(e){ console.error('Firebase save failed, falling back to localStorage', e); }
   }
 
-  // Always also save to localStorage - works offline, and is a safety net
-  // even when Firebase is reachable, in case of an interrupted connection.
   try{
     localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
     savedLocally = true;

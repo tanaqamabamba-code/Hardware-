@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { fmtMoney, monthKey } from '../utils';
 
 export function TopItemsPanel({state,month,yearPrefix}){
-  const [rankBy,setRankBy] = useState('revenue'); // 'revenue' | 'grossProfit'
+  const [rankBy,setRankBy] = useState('revenue');
 
   const periodSales = useMemo(()=>{
     return state.sales.filter(s=> yearPrefix ? s.date.startsWith(yearPrefix) : monthKey(s.date)===month);
@@ -71,4 +71,3 @@ export function TopItemsPanel({state,month,yearPrefix}){
     </div>
   );
 }
-

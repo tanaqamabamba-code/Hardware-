@@ -13,7 +13,7 @@ export function SalesTab({state,setState,toast}){
   const [editingAgent,setEditingAgent] = useState(null);
   const [newAgentName,setNewAgentName] = useState('');
   const [addAgentName,setAddAgentName] = useState('');
-  const [paymentStatus,setPaymentStatus] = useState('paid'); // 'paid' | 'credit'
+  const [paymentStatus,setPaymentStatus] = useState('paid');
   const [customerName,setCustomerName] = useState('');
 
   const itemNames = useMemo(()=>state.items.map(i=>i.name),[state.items]);
@@ -35,19 +35,15 @@ export function SalesTab({state,setState,toast}){
   }
 
   function submit(){
-    // validate every row first, before writing anything
     for(const r of rows){
       if(!r.item){ toast('Every row needs an item.','bad'); return; }
-      if(!state.items.some(i=>i.name===r.item)){ toast(`"${r.item}" isn\u2019t in your stock list. Add it via Buy stock first.`,'bad'); return; }
+      if(!state.items.some(i=>i.name===r.item)){ toast(`"${r.item}" isn’t in your stock list. Add it via Buy stock first.`,'bad'); return; }
       if(!r.qty || Number(r.qty)<=0){ toast('Every row needs a quantity greater than 0.','bad'); return; }
       if(!r.price || Number(r.price)<=0){ toast('Every row needs a price greater than 0.','bad'); return; }
     }
     if(!agent){ toast('Choose who made the sale.','bad'); return; }
-    if(paymentStatus==='credit' && !customerName.trim()){ toast('Enter the customer\u2019s name for a credit sale.','bad'); return; }
+    if(paymentStatus==='credit' && !customerName.trim()){ toast('Enter the customer’s name for a credit sale.','bad'); return; }
 
-    // build sales one row at a time, feeding each into a running state so that
-    // if the same item appears twice in this batch, the second row's FIFO price
-    // correctly accounts for the first row already being "sold"
     let runningState = state;
     const newSales = [];
     for(const r of rows){
@@ -61,8 +57,8 @@ export function SalesTab({state,setState,toast}){
         fifoPrice: Math.round(fifo.price*100)/100,
         fifoLayer: fifo.layerLabel,
         grossProfit: Math.round(grossProfit*100)/100,
-        paymentStatus, // 'paid' | 'credit' - determines whether Cash Flow counts this immediately
-        ledgerId: null // filled in below if this sale creates a receivable
+        paymentStatus,
+        ledgerId: null
       };
       newSales.push(newSale);
       runningState = {...runningState, sales:[...runningState.sales, newSale]};
@@ -70,16 +66,14 @@ export function SalesTab({state,setState,toast}){
 
     let nextLedger = state.ledger || [];
     if(paymentStatus==='credit'){
-      // one combined receivable for the whole multi-item sale, linked to every row
       const totalAmount = newSales.reduce((a,s)=>a+s.qty*s.price,0);
       const ledgerId = 'ledger_'+Date.now();
       nextLedger = [...nextLedger, {
         id: ledgerId, date, type:'receivable', name:customerName.trim(),
-        item: newSales.map(s=>`${s.qty}\u00d7${s.item}`).join(', '),
+        item: newSales.map(s=>`${s.qty}×${s.item}`).join(', '),
         amount: Math.round(totalAmount*100)/100, status:'open', settledDate:null,
         linkedSaleIds: newSales.map(s=>s.id)
       }];
-      // stamp each sale with the ledger entry it belongs to
       newSales.forEach(s=>{ s.ledgerId = ledgerId; });
     }
 
@@ -88,7 +82,7 @@ export function SalesTab({state,setState,toast}){
     saveState(next);
     const itemCount = rows.length;
     const paidNote = paymentStatus==='credit' ? ' (on credit)' : '';
-    toast((itemCount===1 ? `Added ${rows[0].qty} \u00d7 ${rows[0].item}` : `Added ${itemCount} items`)+paidNote, 'good');
+    toast((itemCount===1 ? `Added ${rows[0].qty} × ${rows[0].item}` : `Added ${itemCount} items`)+paidNote, 'good');
     reset(true);
   }
 
@@ -99,7 +93,7 @@ export function SalesTab({state,setState,toast}){
 
   function confirmRenameAgent(){
     const trimmed = newAgentName.trim();
-    if(!trimmed){ toast('Name can\u2019t be empty.','bad'); return; }
+    if(!trimmed){ toast('Name can’t be empty.','bad'); return; }
     if(trimmed !== editingAgent && state.agents.includes(trimmed)){
       toast('That agent already exists.','bad'); return;
     }
@@ -118,7 +112,7 @@ export function SalesTab({state,setState,toast}){
   function removeAgent(name){
     const usedInSales = state.sales.some(s=>s.agent===name);
     if(usedInSales){
-      toast('Can\u2019t remove \u2014 this agent has past sales recorded. Rename instead.','bad');
+      toast('Can’t remove — this agent has past sales recorded. Rename instead.','bad');
       return;
     }
     const next = {...state, agents: state.agents.filter(a=>a!==name)};
@@ -226,7 +220,7 @@ export function SalesTab({state,setState,toast}){
       <Field label="Payment">
         <PillSelect value={paymentStatus} onChange={setPaymentStatus} options={['paid','credit']} />
         <div style={{fontSize:12,color:'var(--concrete)',marginTop:6}}>
-          {paymentStatus==='credit' ? 'Sale happens now, payment comes later \u2014 tracked in Owed.' : 'Cash received now.'}
+          {paymentStatus==='credit' ? 'Sale happens now, payment comes later — tracked in Owed.' : 'Cash received now.'}
         </div>
       </Field>
 
@@ -252,4 +246,3 @@ export function SalesTab({state,setState,toast}){
     </div>
   );
 }
-

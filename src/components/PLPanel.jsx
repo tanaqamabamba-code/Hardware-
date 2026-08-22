@@ -43,4 +43,3 @@ export function PLPanel({state,month,yearPrefix}){
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Field, AutocompleteInput, PillSelect, inputStyle } from './Shared';
-import { fmtMoney, openReceivablesTotal, openPayablesTotal } from '../utils';
+import { fmtMoney, openReceivablesTotal, openPayablesTotal, ledgerPaidTotal, ledgerRemaining } from '../utils';
 import { saveState } from '../storage';
 
 export function LedgerTab({state,setState,toast}){
@@ -10,7 +10,10 @@ export function LedgerTab({state,setState,toast}){
   const [name,setName] = useState('');
   const [itemDesc,setItemDesc] = useState('');
   const [amount,setAmount] = useState('');
-  const [filter,setFilter] = useState('open'); // 'open' | 'settled' | 'all'
+  const [filter,setFilter] = useState('open');
+  const [payingId,setPayingId] = useState(null);
+  const [payAmount,setPayAmount] = useState('');
+  const [payDate,setPayDate] = useState(today);
 
   function reset(){ setName(''); setItemDesc(''); setAmount(''); }
 
@@ -19,7 +22,7 @@ export function LedgerTab({state,setState,toast}){
     if(!amount || Number(amount)<=0){ toast('Enter an amount greater than 0.','bad'); return; }
     const entry = {
       id:'ledger_'+Date.now(), date, type, name:name.trim(), item:itemDesc.trim(),
-      amount:Number(amount), status:'open', settledDate:null
+      amount:Number(amount), status:'open', settledDate:null, payments:[]
     };
     const next = {...state, ledger:[...(state.ledger||[]), entry]};
     setState(next);
@@ -45,6 +48,34 @@ export function LedgerTab({state,setState,toast}){
     };
     setState(next);
     saveState(next);
+  }
+
+  function startPayment(id){
+    setPayingId(id);
+    setPayAmount('');
+    setPayDate(today);
+  }
+
+  function submitPayment(entry){
+    const amt = Number(payAmount);
+    if(!payAmount || amt<=0){ toast('Enter a payment amount greater than 0.','bad'); return; }
+    const remaining = ledgerRemaining(entry);
+    if(amt > remaining + 0.005){ toast(`That’s more than the ${fmtMoney(remaining)} still owing — enter ${fmtMoney(remaining)} or less.`,'bad'); return; }
+    const newPayments = [...(entry.payments||[]), { date: payDate, amount: amt }];
+    const paidTotal = newPayments.reduce((a,p)=>a+p.amount,0);
+    const fullySettled = paidTotal >= entry.amount - 0.005;
+    const next = {
+      ...state,
+      ledger: state.ledger.map(l=> l.id===entry.id ? {
+        ...l, payments:newPayments,
+        status: fullySettled ? 'settled' : 'open',
+        settledDate: fullySettled ? payDate : null
+      } : l)
+    };
+    setState(next);
+    saveState(next);
+    toast(fullySettled ? 'Payment logged — fully settled' : `Payment logged — ${fmtMoney(ledgerRemaining({...entry, payments:newPayments}))} still owing`, 'good');
+    setPayingId(null);
   }
 
   const rows = (state.ledger||[])
@@ -108,7 +139,11 @@ export function LedgerTab({state,setState,toast}){
       </div>
 
       {rows.length===0 && <div style={{fontSize:13,color:'var(--concrete-light)',textAlign:'center',padding:'20px 0'}}>Nothing here.</div>}
-      {rows.map(l=>(
+      {rows.map(l=>{
+        const paid = ledgerPaidTotal(l);
+        const remaining = ledgerRemaining(l);
+        const hasPayments = (l.payments||[]).length > 0;
+        return (
         <div key={l.id} style={{background:'var(--bg-card)',borderRadius:12,padding:'14px 16px',marginBottom:8}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
             <span style={{fontWeight:600,fontSize:15}}>{l.name}</span>
@@ -119,21 +154,54 @@ export function LedgerTab({state,setState,toast}){
           </div>
           <div style={{fontSize:12,color:'var(--concrete-light)',marginTop:4}}>
             {l.type==='receivable' ? 'Owed to you' : 'You owe'} &middot; {l.date}
-            {l.status==='settled' && ` \u00b7 settled ${l.settledDate}`}
+            {l.status==='settled' && ` · settled ${l.settledDate}`}
           </div>
           {l.item && (
             <div style={{fontSize:12,color:'var(--concrete)',marginTop:4}}>{l.item}</div>
           )}
-          <div style={{marginTop:8}}>
-            {l.status==='open' ? (
-              <span onClick={()=>markSettled(l.id)} style={{fontSize:12,color:'var(--accent)',cursor:'pointer',textDecoration:'underline'}}>Mark as settled</span>
-            ) : (
-              <span onClick={()=>reopen(l.id)} style={{fontSize:12,color:'var(--concrete-light)',cursor:'pointer',textDecoration:'underline'}}>Reopen</span>
-            )}
-          </div>
+
+          {hasPayments && (
+            <div style={{marginTop:8,background:'var(--bg-raised)',borderRadius:8,padding:'8px 10px'}}>
+              <div style={{fontSize:11,color:'var(--concrete-light)',marginBottom:4}}>Payments received</div>
+              {l.payments.map((p,i)=>(
+                <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--concrete-light)',padding:'2px 0'}}>
+                  <span>{p.date}</span>
+                  <span style={{color:'var(--paper)'}}>{p.amount.toFixed(2)}</span>
+                </div>
+              ))}
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,fontWeight:700,marginTop:4,paddingTop:4,borderTop:'1px solid var(--line)'}}>
+                <span>Still owing</span>
+                <span>{remaining.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          {l.status==='open' && payingId===l.id ? (
+            <div style={{marginTop:10,background:'var(--bg-raised)',borderRadius:8,padding:10}}>
+              <div style={{fontSize:11,color:'var(--concrete-light)',marginBottom:4}}>Payment amount (of {fmtMoney(remaining)} owing)</div>
+              <input type="number" inputMode="decimal" style={{...inputStyle,padding:'10px',marginBottom:8}} value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="0.00" autoFocus />
+              <div style={{fontSize:11,color:'var(--concrete-light)',marginBottom:4}}>Date</div>
+              <input type="date" style={{...inputStyle,padding:'10px',marginBottom:10}} value={payDate} onChange={e=>setPayDate(e.target.value)} />
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={()=>submitPayment(l)} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'var(--accent)',color:'#1c1b19',fontWeight:700,fontSize:13,cursor:'pointer'}}>Log payment</button>
+                <button onClick={()=>setPayingId(null)} style={{flex:1,padding:'10px',borderRadius:8,border:'1px solid var(--line)',background:'none',color:'var(--concrete-light)',fontWeight:600,fontSize:13,cursor:'pointer'}}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{marginTop:8,display:'flex',gap:14}}>
+              {l.status==='open' ? (
+                <React.Fragment>
+                  <span onClick={()=>startPayment(l.id)} style={{fontSize:12,color:'var(--accent)',cursor:'pointer',textDecoration:'underline'}}>Log a payment</span>
+                  <span onClick={()=>markSettled(l.id)} style={{fontSize:12,color:'var(--concrete-light)',cursor:'pointer',textDecoration:'underline'}}>Mark fully settled</span>
+                </React.Fragment>
+              ) : (
+                <span onClick={()=>reopen(l.id)} style={{fontSize:12,color:'var(--concrete-light)',cursor:'pointer',textDecoration:'underline'}}>Reopen</span>
+              )}
+            </div>
+          )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
-
