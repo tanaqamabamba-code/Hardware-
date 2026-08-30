@@ -3,7 +3,7 @@ import { waitForFirebase } from '../storage';
 import { fmtMoney } from '../utils';
 
 export function TopBar({tab,onBackupClick}){
-  const titles = {sales:'Add a sale', history:'Today’s sales', stock:'Stock levels', newstock:'Add stock', expenses:'Log an expense', loss:'Damage & loss', ledger:'Money owed', hr:'Staff & wages', health:'Business health'};
+const titles = {sales:'Add a sale', history:"Today's sales", stock:'Stock levels', newstock:'Add stock', expenses:'Log an expense', loss:'Damage & loss', ledger:'Money owed', hr:'Staff & wages', health:'Business health', downloads:'Downloads'};
   const [synced,setSynced] = useState(null);
   useEffect(()=>{
     let cancelled = false;
@@ -154,6 +154,7 @@ export function TabBar({tab,setTab}){
     {key:'ledger', label:'Owed'},
     {key:'hr', label:'Staff'},
     {key:'health', label:'Health'},
+    {key:'downloads', label:'Downloads'},
   ];
   return (
     <div className="no-print" style={{

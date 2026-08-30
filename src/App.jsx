@@ -12,6 +12,7 @@ import { DamageLossTab } from './components/DamageLossTab';
 import { LedgerTab } from './components/LedgerTab';
 import { HRTab } from './components/HRTab';
 import { HealthTab } from './components/HealthTab';
+import { DownloadsTab } from './components/DownloadsTab';
 import { BackupPanel } from './components/BackupPanel';
 
 export default function App(){
@@ -49,6 +50,7 @@ export default function App(){
       {tab==='ledger' && <LedgerTab state={state} setState={setState} toast={toast} />}
       {tab==='hr' && <HRTab state={state} setState={setState} toast={toast} />}
       {tab==='health' && <HealthTab state={state} setState={setState} toast={toast} />}
+      {tab==='downloads' && <DownloadsTab state={state} toast={toast} />}
       {showBackup && <BackupPanel state={state} setState={setState} toast={toast} onClose={()=>setShowBackup(false)} />}
       <Toast msg={toastMsg} />
     </React.Fragment>
