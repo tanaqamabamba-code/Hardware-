@@ -15,12 +15,12 @@ const titles = {sales:'Add a sale', history:"Today's sales", stock:'Stock levels
  return (
       <React.Fragment>
       <div style={{padding:'22px 20px 14px', background:'var(--bg)'}}>
-    <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'nowrap',gap:8}}>
           <span onClick={onShopClick} style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700,fontSize:22,letterSpacing:'-0.02em',cursor: onShopClick ? 'pointer' : 'default'}}>{shopName||'Tanbuild'}</span>
           <span style={{width:6,height:6,borderRadius:99,background:'var(--accent)',display:'inline-block'}}></span>
           {onShopClick && <span onClick={onShopClick} style={{fontSize:11,color:'var(--concrete-light)',cursor:'pointer'}}>▾</span>}
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:14}}>
+        <div style={{display:'flex',alignItems:'center',gap:14,flexShrink:0}}>
           <span style={{fontSize:11,color: synced===null?'var(--concrete)':synced?'var(--good)':'var(--concrete-light)'}}>
             {synced===null ? 'Checking…' : synced ? '✓ Synced' : 'Local only'}
           </span>
