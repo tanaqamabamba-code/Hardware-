@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { waitForFirebase } from '../storage';
 import { fmtMoney } from '../utils';
 
-export function TopBar({tab,onBackupClick}){
+export function TopBar({tab,onBackupClick,shopName,onShopClick}){
 const titles = {sales:'Add a sale', history:"Today's sales", stock:'Stock levels', newstock:'Add stock', expenses:'Log an expense', loss:'Damage & loss', ledger:'Money owed', hr:'Staff & wages', health:'Business health', downloads:'Downloads'};
   const [synced,setSynced] = useState(null);
   useEffect(()=>{
@@ -12,12 +12,13 @@ const titles = {sales:'Add a sale', history:"Today's sales", stock:'Stock levels
     });
     return ()=>{ cancelled = true; };
   },[]);
-  return (
-    <div style={{padding:'22px 20px 14px', background:'var(--bg)'}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <span style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700,fontSize:22,letterSpacing:'-0.02em'}}>Tanbuild</span>
+ return (
+      <React.Fragment>
+      <div style={{padding:'22px 20px 14px', background:'var(--bg)'}}>
+    <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+          <span onClick={onShopClick} style={{fontFamily:"system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",fontWeight:700,fontSize:22,letterSpacing:'-0.02em',cursor: onShopClick ? 'pointer' : 'default'}}>{shopName||'Tanbuild'}</span>
           <span style={{width:6,height:6,borderRadius:99,background:'var(--accent)',display:'inline-block'}}></span>
+          {onShopClick && <span onClick={onShopClick} style={{fontSize:11,color:'var(--concrete-light)',cursor:'pointer'}}>▾</span>}
         </div>
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <span style={{fontSize:11,color: synced===null?'var(--concrete)':synced?'var(--good)':'var(--concrete-light)'}}>
@@ -27,8 +28,8 @@ const titles = {sales:'Add a sale', history:"Today's sales", stock:'Stock levels
         </div>
       </div>
       <div style={{color:'var(--concrete-light)',fontSize:14,marginTop:2}}>{titles[tab]}</div>
-    </div>
-  );
+      </React.Fragment>
+    );
 }
 
 export function ReportRow({label,value,bold,accent}){
